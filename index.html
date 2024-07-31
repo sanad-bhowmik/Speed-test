@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/x-icon" href="/speed-meter.png" />
-    <title>Speed Test by Sanad</title>
+    <title>Speed Test | Sanad</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -12,6 +12,7 @@
         margin: 0;
         padding: 0;
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
         height: 100vh;
@@ -151,6 +152,17 @@
       .loader {
         display: none;
       }
+
+      footer {
+        background: #26273b;
+        color: #ffffff;
+        text-align: center;
+        padding: 10px;
+        width: 98%;
+        position: absolute;
+        bottom: 0;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+      }
     </style>
   </head>
   <body>
@@ -190,6 +202,9 @@
         </div>
       </div>
     </div>
+    <footer>
+      <p>&copy; 2024 <a href="https://github.com/sanad-bhowmik" style="color: #007bff;text-decoration: none;font-weight: 500;font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;">Sanad</a>. All rights reserved.</p>
+    </footer>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
       document
@@ -197,8 +212,10 @@
         .addEventListener("click", function () {
           document.getElementById("start-test").style.display = "none";
           document.getElementById("speedometer").style.display = "block";
-          document.getElementById("upload-speed-display").style.display = "none";
-          document.getElementById("download-speed-display").style.display = "none";
+          document.getElementById("upload-speed-display").style.display =
+            "none";
+          document.getElementById("download-speed-display").style.display =
+            "none";
           initializeGraph();
           simulateSpeedTest(30);
         });
@@ -216,8 +233,10 @@
           if (elapsed >= durationInSeconds) {
             clearInterval(interval);
             document.getElementById("speedometer").style.display = "none";
-            document.getElementById("upload-speed-display").style.display = "block";
-            document.getElementById("download-speed-display").style.display = "block";
+            document.getElementById("upload-speed-display").style.display =
+              "block";
+            document.getElementById("download-speed-display").style.display =
+              "block";
             document.getElementById(
               "top-upload-speed"
             ).innerText = `Top Upload Speed: ${topUploadSpeed.toFixed(2)} Mbps`;
