@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="/speed-meter.png" />
+    <title>Speed Test by Sanad</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #141526;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .container {
+        background: #26273b;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        text-align: center;
+        max-width: 500px;
+        width: 100%;
+      }
+
+      .start-button {
+        background-color: transparent;
+        color: white;
+        border: 1px solid #007bff;
+        padding: 20px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 24px;
+        margin-bottom: 20px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+      }
+      .start-button::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 300%;
+        height: 300%;
+        background: rgba(0, 123, 255, 0.5);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: all 0.5s ease;
+        opacity: 0;
+      }
+
+      .start-button:hover::before {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0);
+      }
+
+      .start-button:hover {
+        background-color: #0056b3;
+        box-shadow: 0 0 15px rgba(0, 123, 255, 0.7);
+      }
+
+      .start-button span {
+        position: relative;
+        z-index: 1;
+      }
+
+      .speedometer {
+        display: none;
+        position: relative;
+        width: 300px;
+        height: 300px;
+        margin: 20px auto;
+        border-radius: 50%;
+        border: 10px solid #007bff;
+        background: radial-gradient(
+          circle,
+          rgba(0, 0, 0, 0.1) 50%,
+          transparent 51%
+        );
+        box-shadow: 0 0 40px rgba(0, 123, 255, 0.8);
+        background-color: #26273b;
+      }
+
+      .dial {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+      }
+
+      .needle {
+        position: absolute;
+        width: 6px;
+        height: 44%;
+        background: #007bff;
+        left: 50%;
+        transform-origin: bottom center;
+        transform: rotate(0deg);
+        transition: transform 0.2s ease-in-out;
+      }
+
+      .center-circle {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        background: rgba(100, 114, 131, 0.7);
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      .speed-number {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        font-size: 36px;
+        color: #ffffff;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+      }
+
+      .speed-display {
+        font-size: 28px;
+        font-weight: bold;
+        color: #007bff;
+        margin-top: 10px;
+        display: none; /* Hide by default */
+      }
+
+      .results p {
+        font-size: 20px;
+        margin: 10px 0;
+      }
+
+      .graph {
+        margin-top: 20px;
+      }
+
+      #speed-graph {
+        width: 100%;
+        height: 200px;
+      }
+
+      .loader {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 style="font-family: serif; display: block; color: white">
+        Speed Test
+      </h1>
+      <button id="start-test" class="start-button"><span>Go</span></button>
+      <div id="speedometer" class="speedometer">
+        <div class="dial">
+          <div class="needle"></div>
+          <div class="center-circle"></div>
+          <div id="speed-number" class="speed-number">0 Mbps</div>
+        </div>
+        <div id="upload-speed-display" class="speed-display">
+          Upload: 0 Mbps
+        </div>
+        <div id="download-speed-display" class="speed-display">
+          Download: 0 Mbps
+        </div>
+      </div>
+      <div id="results" class="results" style="display: none">
+        <p
+          id="top-upload-speed"
+          style="font-family: serif; display: block; color: white"
+        >
+          Top Upload Speed: -
+        </p>
+        <p
+          id="top-download-speed"
+          style="font-family: serif; display: block; color: white"
+        >
+          Top Download Speed: -
+        </p>
+        <div id="graph" class="graph">
+          <canvas id="speed-graph"></canvas>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      document
+        .getElementById("start-test")
+        .addEventListener("click", function () {
+          document.getElementById("start-test").style.display = "none";
+          document.getElementById("speedometer").style.display = "block";
+          document.getElementById("upload-speed-display").style.display = "none";
+          document.getElementById("download-speed-display").style.display = "none";
+          initializeGraph();
+          simulateSpeedTest(30);
+        });
+
+      function simulateSpeedTest(durationInSeconds) {
+        const startTime = Date.now();
+        let topUploadSpeed = 0;
+        let topDownloadSpeed = 0;
+        const uploadSpeeds = [];
+        const downloadSpeeds = [];
+
+        const interval = setInterval(() => {
+          const elapsed = (Date.now() - startTime) / 1000;
+
+          if (elapsed >= durationInSeconds) {
+            clearInterval(interval);
+            document.getElementById("speedometer").style.display = "none";
+            document.getElementById("upload-speed-display").style.display = "block";
+            document.getElementById("download-speed-display").style.display = "block";
+            document.getElementById(
+              "top-upload-speed"
+            ).innerText = `Top Upload Speed: ${topUploadSpeed.toFixed(2)} Mbps`;
+            document.getElementById(
+              "top-download-speed"
+            ).innerText = `Top Download Speed: ${topDownloadSpeed.toFixed(
+              2
+            )} Mbps`;
+            updateGraph(uploadSpeeds, downloadSpeeds);
+            document.getElementById("results").style.display = "block";
+            return;
+          }
+
+          const currentUploadSpeed = getMockSpeed();
+          const currentDownloadSpeed = getMockSpeed();
+          topUploadSpeed = Math.max(topUploadSpeed, currentUploadSpeed);
+          topDownloadSpeed = Math.max(topDownloadSpeed, currentDownloadSpeed);
+          uploadSpeeds.push(currentUploadSpeed);
+          downloadSpeeds.push(currentDownloadSpeed);
+          updateSpeedometer(currentUploadSpeed, currentDownloadSpeed);
+        }, 1000);
+      }
+
+      function getMockSpeed() {
+        return 5 + Math.random() * 20;
+      }
+
+      function updateSpeedometer(uploadSpeed, downloadSpeed) {
+        const needle = document.querySelector(".needle");
+        const maxSpeed = 25;
+        const rotation = (uploadSpeed / maxSpeed) * 180 - 90;
+        needle.style.transform = `rotate(${rotation}deg)`;
+        document.getElementById(
+          "speed-number"
+        ).innerText = `${uploadSpeed.toFixed(2)} Mbps`;
+        document.getElementById(
+          "upload-speed-display"
+        ).innerText = `Upload: ${uploadSpeed.toFixed(2)} Mbps`;
+        document.getElementById(
+          "download-speed-display"
+        ).innerText = `Download: ${downloadSpeed.toFixed(2)} Mbps`;
+      }
+
+      let chart;
+
+      function initializeGraph() {
+        const ctx = document.getElementById("speed-graph").getContext("2d");
+        chart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: [],
+            datasets: [
+              {
+                label: "Upload Speed (Mbps)",
+                data: [],
+                borderColor: "#007bff",
+                backgroundColor: "rgba(0, 123, 255, 0.2)",
+                borderWidth: 2,
+                fill: true,
+              },
+              {
+                label: "Download Speed (Mbps)",
+                data: [],
+                borderColor: "#28a745",
+                backgroundColor: "rgba(40, 167, 69, 0.2)",
+                borderWidth: 2,
+                fill: true,
+              },
+            ],
+          },
+          options: {
+            scales: {
+              x: {
+                type: "linear",
+                position: "bottom",
+                ticks: {
+                  stepSize: 1,
+                },
+              },
+              y: {
+                beginAtZero: true,
+                suggestedMax: 30,
+              },
+            },
+          },
+        });
+      }
+
+      function updateGraph(uploadSpeeds, downloadSpeeds) {
+        chart.data.labels = Array.from(
+          { length: uploadSpeeds.length },
+          (_, i) => i + 1
+        );
+        chart.data.datasets[0].data = uploadSpeeds.map((speed, i) => ({
+          x: i + 1,
+          y: speed,
+        }));
+        chart.data.datasets[1].data = downloadSpeeds.map((speed, i) => ({
+          x: i + 1,
+          y: speed,
+        }));
+        chart.update();
+      }
+    </script>
+  </body>
+</html>
